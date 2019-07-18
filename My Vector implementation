@@ -1,0 +1,58 @@
+//+++++++++++Vector implementation+++++++
+//template <class T>
+//class MyVector
+//{
+//private:
+//     int m_Size;
+//     int m_Capacity;
+//     T *ptr;
+//public:
+//     MyVector() :m_Size(0), m_Capacity(4), ptr(nullptr)
+//     {
+//            ptr = new T[m_Capacity];
+//     }
+//     void display()
+//     {
+//            for (int i = 0; i < m_Size; i++)
+//            {
+//                   cout << ptr[i] << "\t";
+//            }
+//            cout << endl;
+//     }
+//     void push_back(int val)
+//     {
+//            ptr[m_Size++] = val;
+//            if (m_Size == m_Capacity)
+//            {
+//                   T *bkptr = ptr;
+//                   m_Capacity = m_Capacity * 2;
+//                   ptr = new T[m_Capacity];
+//                   for (int i = 0; i < m_Size; i++)
+//                   {
+//                         ptr[i] = bkptr[i];
+//                   }
+//                   delete [] bkptr;
+//
+//            }
+//            cout << "size == " << m_Size << endl;
+//            cout << "Capacity == " << m_Capacity << endl;
+//     }
+//
+//
+//};
+//
+//int main()
+//{
+//     MyVector<char> vec;
+//     vec.push_back(10);
+//     vec.push_back(20);
+//     vec.push_back(30);
+//     vec.push_back(40);
+//     vec.display();
+//     vec.push_back(50);
+//     vec.push_back(60);
+//     vec.push_back(70);
+//     vec.push_back(80);
+//     vec.display();
+//     return 0;
+//}
