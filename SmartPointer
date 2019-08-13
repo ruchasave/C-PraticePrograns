@@ -1,0 +1,577 @@
+#include<iostream>
+#include<vector>
+#include<thread>
+#include<mutex>
+#include<queue>
+//#include<memory>
+using namespace std;
+// move constructor
+
+//
+//class Test
+//{
+//     int* p;
+//public:
+//     Test()
+//     {
+//            p = new int;
+//            *p = 10;
+//            
+//            cout << "Default constructor...\n";
+//     }
+//     Test(const Test& obj)
+//     {
+//            cout << "Copy constructor...\n";
+//            this->p = new int;
+//            *this->p = *obj.p;
+//     }
+//
+//     Test& operator=(const Test& obj)
+//     {
+//            cout << "Assignment operator...\n";
+//            if (this == &obj)
+//            {
+//                   return *this;
+//            }
+//            *this->p = *obj.p;
+//            return *this;
+//     }
+//
+//     Test(Test&& obj)
+//     {
+//            cout << "move constructor...\n";
+//            p = obj.p;
+//            obj.p = nullptr;
+//     }
+//     Test& operator=(Test&& obj)
+//     {
+//            cout << "move Assignment operator...\n";
+//            if (this != &obj)
+//            {
+//                   this->p = obj.p;
+//                   obj.p = nullptr;
+//            }
+//            
+//            return *this;
+//     }
+//};
+//Test getObj()
+//{
+//     Test obj;
+//     return obj;
+//}
+//int main()
+//{
+//     
+//     
+//     Test obj1;
+//     Test obj2;
+//     obj2 = obj1;
+//
+//     obj1 = getObj();
+//     cout << "\n==============\n";
+//     obj2 = Test();
+//     /*
+//     std::vector<Test> vec;
+//     vec.push_back(obj1);
+//*/
+//     
+//     return 0;
+//}
+
+//+++++++++++Vector implementation+++++++
+
+//template <class T>
+//class MyVector
+//{
+//private:
+//     int m_Size;
+//     int m_Capacity;
+//     T *ptr;
+//public:
+//     MyVector() :m_Size(0), m_Capacity(4), ptr(nullptr)
+//     {
+//            ptr = new T[m_Capacity];
+//     }
+//     void display()
+//     {
+//            for (int i = 0; i < m_Size; i++)
+//            {
+//                   cout << ptr[i] << "\t";
+//            }
+//            cout << endl;
+//     }
+//     void push_back(int val)
+//     {
+//            ptr[m_Size++] = val;
+//            if (m_Size == m_Capacity)
+//            {
+//                   T *bkptr = ptr;
+//                   m_Capacity = m_Capacity * 2;
+//                   ptr = new T[m_Capacity];
+//                   for (int i = 0; i < m_Size; i++)
+//                   {
+//                         ptr[i] = bkptr[i];
+//                   }
+//                   delete [] bkptr;
+//
+//            }
+//            cout << "size == " << m_Size << endl;
+//            cout << "Capacity == " << m_Capacity << endl;
+//     }
+//
+//
+//};
+//
+//int main()
+//{
+//     MyVector<char> vec;
+//     vec.push_back(10);
+//     vec.push_back(20);
+//     vec.push_back(30);
+//     vec.push_back(40);
+//     vec.display();
+//     vec.push_back(50);
+//     vec.push_back(60);
+//     vec.push_back(70);
+//     vec.push_back(80);
+//     vec.display();
+//     return 0;
+//}
+
+//unique pointer
+
+//template<class T>
+//class uniquePtr
+//{
+//private:
+//     T *ptr;
+//public:
+//     uniquePtr(const uniquePtr&) = delete;
+//     uniquePtr& operator=(const uniquePtr&) = delete;
+//
+//     uniquePtr(T* add)
+//     {
+//            cout << "const....\n";
+//            ptr = add;
+//     }
+//
+//     ~uniquePtr()
+//     {
+//            cout << "Dest....\n";
+//            delete[]ptr;
+//            ptr = nullptr;
+//     }
+//};
+//
+//int main()
+//{
+//     uniquePtr<int> u_ptr = new int[5];
+//     //uniquePtr u_ptr1(u_ptr); // Error
+//     //u_ptr1 = u_ptr;//assignment error
+//     return 0;
+//}
+
+
+//shared pointer....
+
+class Test
+{
+       
+public:
+       int x;
+       Test():x(10){}
+       void display()
+       {
+              cout << "x == " << x << endl;
+       }
+       friend ostream& operator<<(ostream&os , Test&obj)
+       {
+              return os << obj.x;
+       }
+
+};
+template <typename T>
+class myShared_ptr
+{
+private:
+       T* p;
+       int* ref;
+public:
+       myShared_ptr(T* add):p(nullptr),ref(nullptr)
+       {
+              p = add;
+              ref = new int;
+              *ref = 1;
+       }
+
+       myShared_ptr(const myShared_ptr& obj)
+       {
+              p = obj.p;
+              ref = obj.ref;
+              (*ref)++;
+       }
+
+       ~myShared_ptr()
+       {
+              (*ref)--;
+              if (*ref == 0)
+              {
+                     delete p;
+                     delete ref;
+                     p = nullptr;
+                     ref = nullptr;
+              }
+       }
+
+       myShared_ptr& operator=(const myShared_ptr& obj)
+       {
+              if (this != &obj)
+              {
+                     p = obj.p;
+                     ref = obj.ref;
+                     (*ref)++;
+              }
+              return *this;
+       }
+
+       void reset()
+       {
+              (*ref)--;
+              if (*ref == 0)
+              {
+                     delete p;                  
+                     delete ref;                
+              }
+              p = nullptr;
+              ref = nullptr;
+       }
+
+       int ref_count()
+       {
+              if (ref == nullptr)
+                     return 0;
+
+              return *ref;
+       }
+       T* operator->()
+       {
+              return p;
+       }
+       T& operator*()
+       {
+              return *p;
+       }
+};
+int main()
+{
+       /*myShared_ptr obj1 = new int(5);
+       cout << obj1.ref_count() << endl;
+       {
+              myShared_ptr obj2 = obj1;
+              {
+                     myShared_ptr obj3 = obj2;
+                     cout << obj1.ref_count() << endl;
+              }
+              cout << obj1.ref_count() << endl;
+       }
+       cout << obj1.ref_count() << endl;
+*/
+
+       myShared_ptr<Test> obj1(new Test());
+       obj1->display();
+       cout << *obj1 << endl;
+
+       //myShared_ptr<int> obj1(new int);
+       //*obj1 = 10;
+       //cout << "*obj == " << *obj1 << endl;
+       return 0;
+}
+
+
+// memset implementation
+
+//template<typename T>
+//T* my_memset(T* s, T ch, size_t size)
+//{
+//     //unsigned int *c = (unsigned int*)s;
+//     if (nullptr == s)
+//     {
+//            return nullptr;
+//     }
+//     for (unsigned int i = 0; i < size; ++i)
+//     {
+//            s[i] = ch;           
+//     }
+//     return s;
+//}
+//int main()
+//{
+       //int* ptr = new int[5];
+       //my_memset(ptr, 10, 5);
+       //for (int i = 0; i < 5; i++)
+       //{
+       //     cout << ptr[i] << " ";
+       //}
+       //cout << endl;
+       //char* ch = new char[20];
+       //my_memset(ch, 'A', 20);
+       //cout << ch << endl;
+       //char str[] = "geeksforgeeks";
+       //if (nullptr != my_memset(str, 't', sizeof(str)))
+       //{
+       //     cout << str << endl;
+       //}
+       //else
+       //{
+       //     cout << "nullptr error...!!!" << endl;
+       //}
+       //********************
+       ////int arr[5];
+       //int size = 20;
+       //int* arr = new int[size];
+       //
+       //if(nullptr == my_memset(arr, -8, size))
+       //{
+       //     cout << "nullptr error...!!!" << endl;
+       //}
+       //for (int i = 0; i < size; i++)
+       //{
+       //     cout << arr[i] << " ";
+       //}
+       //return 0;
+//}
+
+
+//memcpy ....
+
+//template<typename T>
+//void my_memcpy(T* dest, const T* sour, size_t size)
+//{
+//     for (unsigned int i = 0; i < size; ++i)
+//     {
+//            dest[i] = sour[i];
+//     }
+//}
+//int main()
+//{
+//     char* c = new char[5];
+//     string s = "ABCD";
+//     my_memcpy(c, s.c_str(), 5);
+//
+//     int* ii = new int[5];
+//     int arr[5] = { 10,20,30,40,50 };
+//     my_memcpy(ii, arr, 5);
+//     return 0;
+//}
+
+//Threading
+
+//int arr[5] = { 5, 4, 1, 2, 3 };
+//int i = 0;
+//std::mutex mu;
+//std::condition_variable cond;
+//
+//void func(int value)
+//{
+//     while (1)
+//     {
+//            std::unique_lock<mutex> locker(mu);
+//            //mu.lock();
+//            cond.wait(locker, [=]()->bool {return (arr[i] == value);});
+//            //if (arr[i] == value)
+//            {
+//                   cout << "thread " << value << endl;
+//                   i++;
+//                   locker.unlock();
+//                   cond.notify_all();
+//                   break;
+//            }
+//            /*else
+//            {
+//                   //cond.wait(locker);
+//            }*/
+//
+//     }
+//
+//}
+//
+//int main()
+//{
+//     std::thread t1(func, 1);
+//     std::thread t2(func, 2);
+//     std::thread t3(func, 3);
+//     std::thread t4(func, 4);
+//     std::thread t5(func, 5);
+//
+//     t1.join();
+//     t2.join();
+//     t3.join();
+//     t4.join();
+//     t5.join();
+//
+//
+//     return 0;
+//}
+
+// memset implementation..
+
+//template<class T>
+//T* myMemset(T *ptr,T c,size_t s)
+//{
+//     if (nullptr == ptr)
+//     {
+//            return nullptr;
+//     }
+//     T* ch_ptr = ptr;
+//     
+//     unsigned int i = 0;
+//     for (i = 0; i < s; ++i)
+//     {
+//            *ch_ptr++ = c;
+//     }
+//     
+//     return ptr;
+//}
+//
+//int main()
+//{
+//
+//     char str[] = "geeksforgeeks";
+//     if (nullptr != myMemset(str, 't', sizeof(str)))
+//     {
+//            cout << str << endl;
+//     }
+//     else
+//     {
+//            cout << "nullptr error...!!!" << endl;
+//     }
+//     
+//
+//     int arr[5];
+//     myMemset(arr, 0, sizeof(arr));
+//
+//     for (int i = 0; i < 5; i++)
+//     {
+//            cout << arr[i] << " ";
+//     }
+//
+//     return 0;
+//}
+
+
+// BST implementation..
+
+//
+//struct Node 
+//{
+//     Node* left;
+//     Node* right;
+//     int data;
+//     Node(int val)
+//     {
+//            data = val;
+//            left = right = nullptr;
+//     }
+//};
+//
+//class BST
+//{
+//private:
+//     Node* m_Root;
+//     void Insert(Node* root,int data);
+//public:
+//     BST() :m_Root(nullptr)
+//     {
+//
+//     }
+//     void Insert(int data);
+//     bool Search(int data);
+//     void deleteNode(int data);
+//};
+//
+//void BST::Insert(int data)
+//{
+//     
+//     if (m_Root == nullptr)
+//     {
+//            m_Root = new Node(data);
+//            return;
+//     }
+//     Insert(m_Root,  data);
+//}
+//
+//void BST::Insert(Node* root, int data)
+//{
+//     if (root->data <= data)
+//     {
+//            Insert(root->right, data);
+//     }
+//     else
+//     {
+//            Insert(root->left, data);
+//     }
+//}
+
+// n step problem
+
+//int fun(int n)
+//{
+//     if (n == 1 || n == 0)
+//     {
+//            return 1;
+//     }
+//     else if (n == 2)
+//     {
+//            return 2;
+//     }
+//     else if (n == 3)
+//     {
+//            return 3;
+//     }
+//     else
+//     {
+//            int a = 1;
+//            int b = 2;
+//            int c = 3;
+//            int result = 0;
+//            for (int i = 4; i <= n; i++)
+//            {
+//                   result = a + b + c;
+//                   a = b;
+//                   b = c;
+//                   c = result;
+//            }
+//
+//            return result;
+//     }
+//
+//}
+//int main()
+//{
+//     int n = 0;
+//     cout << "Enter number " << endl;
+//     cin >> n;
+//     cout << "result " << fun(n) << endl;
+//     return 0;
+//}
+
+//class Test
+//{
+//     int x;
+//public:
+//     Test():x(10){}
+//     void display()
+//     {
+//            cout << "x == " << x << endl;
+//     }
+//
+//};
+//int main()
+//{
+//     std::shared_ptr<Test> sh (new Test());
+//     sh->display();
+//
+//     return 0;
+//
+//}
